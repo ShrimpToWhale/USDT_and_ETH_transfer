@@ -1,3 +1,4 @@
+'''Functions for handling user input.'''
 import random
 from src.utils.logger_config import logger
 from dataclasses import dataclass
@@ -6,6 +7,7 @@ from src.models.wallet import Wallet
 import time
 
 @dataclass
+# Configuration settings from user input.
 class UserConfig:
     min_account_delay: int
     max_account_delay: int  
@@ -14,8 +16,8 @@ class UserConfig:
     shuffle_wallets: bool
 
 
+# Get delay settings from user input.
 def get_delay_settings() -> Tuple[int, int, int, int]:
-
     while True:
         try:
             min_account_delay = int(input('Enter minimum delay between wallets: '))
@@ -30,9 +32,8 @@ def get_delay_settings() -> Tuple[int, int, int, int]:
         except ValueError:
             logger.error('The value you entered is not an integer digit')
 
-
+# Ask user if they want to shuffle wallets.
 def get_shuffle_setting() -> bool:
-
     while True:
         shuffle = input('Do you want to shuffle wallets (y/n)? ')
         if shuffle.lower() not in ('y', 'n'):
@@ -41,6 +42,7 @@ def get_shuffle_setting() -> bool:
             return shuffle.lower() == 'y'
 
 
+# Get all user configuration.
 def get_user_config() -> UserConfig:
     min_account_delay, max_account_delay, min_action_delay, max_action_delay = get_delay_settings()
     shuffle_wallets = get_shuffle_setting()
@@ -54,6 +56,7 @@ def get_user_config() -> UserConfig:
     )
 
 
+# Shuffle wallets if needed.
 def shuffle_wallets_if_needed(wallets: List[Wallet], should_shuffle: bool) -> List[Wallet]:
     if should_shuffle:
         shuffled_wallets = wallets.copy()
@@ -62,12 +65,14 @@ def shuffle_wallets_if_needed(wallets: List[Wallet], should_shuffle: bool) -> Li
     return wallets
 
 
+# Sleep for a random time between actions.
 def sleep_between_actions(min_delay: int, max_delay: int) -> None:
     delay = random.randint(min_delay, max_delay)
     logger.info(f'Sleep for {delay} seconds between actions')
     time.sleep(delay)
 
 
+# Sleep for a random time between accounts.
 def sleep_between_accounts(min_delay: int, max_delay: int) -> None:
     delay = random.randint(min_delay, max_delay)
     logger.info(f'Sleep for {delay} seconds between accounts')
