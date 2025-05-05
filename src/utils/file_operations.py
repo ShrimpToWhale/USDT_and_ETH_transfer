@@ -1,3 +1,4 @@
+'''Utility functions for file operations.'''
 from src.utils.logger_config import logger
 from src.models.wallet import Wallet
 import json
