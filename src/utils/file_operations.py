@@ -2,6 +2,7 @@
 from src.utils.logger_config import logger
 from src.models.wallet import Wallet
 import json
+from web3 import Web3
 
 
 # Read a file and return its contents as a list of lines.
@@ -28,12 +29,20 @@ def load_wallets_data() -> list[Wallet]:
     # Create Wallet objects.
     wallets = []
     for i, private_key in enumerate(private_keys):
-        wallet = Wallet(
-            private_key = private_key,
-            recipient_address = recipients[i],
-            proxy = proxies[i]
-        )
-        wallets.append(wallet)
+        try:
+            # Validate recipient address
+            Web3.to_checksum_address(recipients[i])
+            
+            wallet = Wallet(
+                private_key=private_key,
+                recipient_address=recipients[i],
+                proxy=proxies[i]
+            )
+            wallets.append(wallet)
+        except ValueError as e:
+            logger.error(f'Invalid recipient address: {recipients[i]}. Error: {e}')
+            # Skip this wallet
+            continue
     return wallets
 
 
