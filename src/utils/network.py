@@ -2,12 +2,13 @@
 import requests
 from web3 import Web3
 from web3.exceptions import TimeExhausted
+from typing import Optional, Union
 from src.config.constants import arb_explorer_url
 from src.utils.logger_config import logger
 
 
 # Proxy availability check.
-def check_proxy(proxy: str) -> str | None:
+def check_proxy(proxy: Optional[str]) -> Optional[str]:
     if not proxy:
         return None
 
@@ -25,14 +26,15 @@ def check_proxy(proxy: str) -> str | None:
             logger.warning(f'Proxy {proxy} returned status: {response.status_code}, continue without it')
             return None
         else:
+            logger.info(f'Using proxy: {proxy}')
             return f'http://{proxy}'
     except Exception as e:
-        logger.warning(f'Proxy {proxy} connection failed, continue without it')
+        logger.warning(f'Proxy {proxy} connection failed: {str(e)}, continue without it')
         return None
 
 
 # Create a Web3 instance with optional proxy.
-def create_web3_instance(rpc_url: str, proxy: str | None = None) -> Web3:
+def create_web3_instance(rpc_url: str, proxy: Optional[str] = None) -> Web3:
     if proxy:
         web3 = Web3(Web3.HTTPProvider(
             rpc_url,
@@ -49,11 +51,23 @@ def create_web3_instance(rpc_url: str, proxy: str | None = None) -> Web3:
     # Check connection.
     if not web3.is_connected():
         raise ConnectionError("Failed to connect to the blockchain RPC endpoint")
+    
+    # Log some network information to confirm connection
+    try:
+        chain_id = web3.eth.chain_id
+        logger.info(f'Connected to network with chain ID: {chain_id}')
+        
+        # Get current gas price
+        gas_price = web3.from_wei(web3.eth.gas_price, 'gwei')
+        logger.info(f'Current gas price: {gas_price:.2f} Gwei')
+    except Exception as e:
+        logger.warning(f'Connected to network but could not get network details: {str(e)}')
+    
     return web3
 
 
 # Wait for transaction confirmation.
-def wait_for_transaction(web3: Web3, tx_hash, operation_type: str) -> bool:
+def wait_for_transaction(web3: Web3, tx_hash: Union[bytes, str], operation_type: str) -> bool:
     try:
         logger.info(f'{operation_type} transaction sent, it will take up to 2 minutes to confirm it')
         receipt = web3.eth.wait_for_transaction_receipt(tx_hash, timeout=120, poll_latency=10)

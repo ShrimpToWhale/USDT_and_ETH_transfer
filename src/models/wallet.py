@@ -1,10 +1,11 @@
 from src.utils.logger_config import logger
 from eth_account import Account
 from web3 import Web3
+from typing import Optional
 
 class Wallet:
     # Wallet class initiation.
-    def __init__(self, private_key: str, recipient_address: str, proxy: str | None = None):
+    def __init__(self, private_key: str, recipient_address: str, proxy: Optional[str] = None):
         self.private_key = private_key
         self.recipient_address = self.to_checksum(recipient_address)
         self.proxy = proxy
@@ -27,3 +28,14 @@ class Wallet:
         except Exception as e:
             logger.error(f'Invalid address: {address}. Error: {e}"')
             raise ValueError
+            
+    # Get hidden version of private key for logs.
+    def get_hidden_key(self) -> str:
+        """Return a hidden version of the private key for logging."""
+        if not self.private_key:
+            return "None"
+        if self.private_key.startswith("0x"):
+            visible_part = self.private_key[:6] + "..." + self.private_key[-4:]
+        else:
+            visible_part = self.private_key[:4] + "..." + self.private_key[-4:]
+        return visible_part
